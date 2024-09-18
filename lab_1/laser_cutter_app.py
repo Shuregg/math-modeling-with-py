@@ -3,7 +3,6 @@ import tkinter.messagebox
 import math
 
 # Константа - удельная теплота плавления для стали (примерное значение)
-LATENT_HEAT_OF_FUSION = 272000  # Дж/кг (для стали)
 
 class LaserCutterApp:
     def __init__(self, root):
@@ -146,12 +145,7 @@ class LaserCutterApp:
         # Объем отверстия
         hole_volume =  hole_area * thickness_m  # м³
 
-        # Необходимая энергия (в Дж)
-        # energy_required = hole_volume * self.metal_density.get() * LATENT_HEAT_OF_FUSION
-
         # Время резки (в секундах)
-        # time_required = energy_required / self.laser_power.get()
-
         time_required = (self.metal_thickness.get() * self.specific_heat_capacity.get() * hole_area * self.metal_density.get()) / (self.laser_power.get())
         return time_required
 
