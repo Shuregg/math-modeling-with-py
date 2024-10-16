@@ -9,7 +9,7 @@ class LaserCutterApp:
         self.root = root
         self.root.title("Модель лазерного резчика")
 
-        # Изначальные значения
+        # Начальные значения
         self.default_hole_diameter = 10  # мм
         self.default_metal_thickness = 50  # мм
         self.default_laser_power = 1000  # Вт
@@ -61,39 +61,39 @@ class LaserCutterApp:
         self.canvas = tk.Canvas(self.root, width=500, height=300)
         self.canvas.pack()
 
-        # Добавляем слайдер для управления положением лазера
-        tk.Label(self.root, text="Положение лазера (слайдер):").pack()
+        # Cлайдер для управления положением лазера
+        tk.Label(self.root, text="Положение лазера:").pack()
         self.position_slider = tk.Scale(self.root, from_=0, to=500, orient=tk.HORIZONTAL, variable=self.laser_position, command=self.update_from_slider)
         self.position_slider.pack()
 
-        # Добавляем текстовое поле для ввода точной координаты положения лазера
-        tk.Label(self.root, text="Положение лазера (точное значение):").pack()
+        # Ввод точной координаты положения лазера
+        tk.Label(self.root, text="Положение лазера (введите значение):").pack()
         self.position_entry = tk.Entry(self.root)
         self.position_entry.pack()
         self.position_entry.bind("<Return>", self.update_from_entry)
 
         self.update_canvas()
 
+    """Обновление координаты лазера при перемещении слайдера."""
     def update_from_slider(self, event):
-        """Обновляем координату лазера при перемещении слайдера."""
-        # Ограничиваем позицию лазера в зависимости от диаметра отверстия
+        # Ограничение позицию лазера в зависимости от диаметра отверстия
         half_hole_diameter = self.hole_diameter.get() / 2
         min_position = half_hole_diameter
         max_position = 500 - half_hole_diameter
 
-        # Проверяем текущее положение лазера
+        # Проверка текущего положения лазера
         if self.laser_position.get() < min_position:
             self.laser_position.set(min_position)
         elif self.laser_position.get() > max_position:
             self.laser_position.set(max_position)
 
-        # Обновляем текстовое поле с координатой
+        # Обновление текстового поля с координатой
         self.position_entry.delete(0, tk.END)
         self.position_entry.insert(0, str(int(self.laser_position.get())))
         self.update_canvas()
 
+    """Обновление координаты лазера при вводе в текстовое поле."""
     def update_from_entry(self, event):
-        """Обновляем координату лазера при вводе в текстовое поле."""
         try:
             position = float(self.position_entry.get())
             half_hole_diameter = self.hole_diameter.get() / 2
@@ -112,22 +112,22 @@ class LaserCutterApp:
     def update_canvas(self):
         self.canvas.delete("all")
 
-        # Рассчитываем толщину пластины в пикселях
-        thickness_px = self.metal_thickness.get()  # будем использовать прямое значение в мм для пикселей
+        # Вывод толщины пластины (1 пиксель = 1 мм)
+        thickness_px = self.metal_thickness.get()
         if thickness_px < 1:
-            thickness_px = 1  # минимальная толщина для визуализации
+            thickness_px = 1
 
         # Координаты верхней и нижней границы пластины
         plate_top = 200
         plate_bottom = plate_top + thickness_px
 
-        # Рисуем металлическую пластину с толщиной, зависящей от введённых данных
+        # Отрисовка металлической пластины с введённой толщиной
         self.canvas.create_rectangle(0, plate_top, 500, plate_bottom, fill="grey")
 
-        # Рисуем лазерный луч
+        # Отрисовка лазера
         self.canvas.create_line(self.laser_position.get(), 50, self.laser_position.get(), plate_top, fill="red", width=2)
 
-        # Рисуем все отверстия, которые были вырезаны
+        # Отрисовка отверстий
         for hole in self.holes:
             x_position, diameter, depth = hole
             hole_radius = diameter / 2
@@ -135,43 +135,43 @@ class LaserCutterApp:
                                          x_position + hole_radius, plate_top + depth, fill="black")
 
     def calculate_cutting_time(self):
-        # Преобразуем размеры в метры
+        # мм в м
         hole_radius_m = (self.hole_diameter.get() / 2) / 1000  # в метры
         thickness_m = self.metal_thickness.get() / 1000  # в метры
 
-        # Площадь отверстия
+        # Площадь отверстия (м2)
         hole_area = math.pi * (hole_radius_m ** 2)
 
-        # Объем отверстия
+        # Объем отверстия (м³)
         hole_volume =  hole_area * thickness_m  # м³
 
         # Время резки (в секундах)
         time_required = (self.metal_thickness.get() * self.specific_heat_capacity.get() * hole_area * self.metal_density.get()) / (self.laser_power.get())
         return time_required
 
+    """анимация резки"""
     def start_cutting(self):
-        """Начинаем анимацию резки"""
         self.animation_running = True
         self.cut_depth = 0
         self.target_depth = self.metal_thickness.get()
 
         try:
-            # Рассчитываем время резки
+            # Расчёт времени резки
             self.total_cutting_time = self.calculate_cutting_time()
 
-            # Устанавливаем интервал для анимации
+            # Установка интервала анимации
             self.interval = self.total_cutting_time / 100  # 100 шагов анимации
 
-            # Добавляем новое отверстие в список вырезанных отверстий
+            # Добавление нового отверстия в список вырезанных отверстий
             self.holes.append([self.laser_position.get(), self.hole_diameter.get(), 0])
 
-            # Запускаем анимацию
+            # Запуск анимации
             self.animate_cutting()
         except ValueError:
             tk.messagebox.showerror("Ошибка", "Введите корректные данные для всех параметров.")
 
+    """Анимация прорезания отверстия"""
     def animate_cutting(self):
-        """Анимация прорезания отверстия"""
         if not self.animation_running:
             return
 
@@ -180,7 +180,7 @@ class LaserCutterApp:
             self.holes[-1][2] = self.cut_depth
             self.update_canvas()
 
-            # Обновляем время резки
+            # Обновление времени резки
             elapsed_time = (self.cut_depth / self.target_depth) * self.total_cutting_time
             self.time_label.config(text=f"Прошло времени: {elapsed_time:.2f} сек")
 
@@ -190,8 +190,8 @@ class LaserCutterApp:
             self.time_label.config(text=f"Время прорезания отверстия: {self.total_cutting_time:.2f} сек")
             self.animation_running = False
 
+    """Мгновенное завершение анимации"""
     def instant_cutting(self):
-        """Завершаем анимацию мгновенно"""
         if self.animation_running:
             self.cut_depth = self.target_depth
             self.holes[-1][2] = self.cut_depth
@@ -200,8 +200,8 @@ class LaserCutterApp:
             self.time_label.config(text=f"Время прорезания отверстия: {self.total_cutting_time:.2f} сек")
             self.animation_running = False
 
+    """Очистка поверхности"""
     def reset_holes(self):
-        """Удаляем все вырезанные отверстия и сбрасываем время"""
         self.holes = []
         self.update_canvas()
         self.time_label.config(text="Прошло времени: 0 сек")  # Сброс времени
