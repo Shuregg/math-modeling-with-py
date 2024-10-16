@@ -23,7 +23,7 @@ class LaserCutterApp:
         self.metal_density = tk.DoubleVar(value=self.default_metal_density)
         self.specific_heat_capacity = tk.DoubleVar(value=self.default_specific_heat_capacity)
 
-        # Позиция лазера (используем DoubleVar для связи со слайдером)
+        # Позиция лазера (DoubleVar для связи со слайдером)
         self.laser_position = tk.DoubleVar(value=250)
         self.hole_cut = False
         self.animation_running = False
